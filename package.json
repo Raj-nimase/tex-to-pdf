@@ -1,0 +1,30 @@
+{
+  "name": "latex-pdf-compiler-server",
+  "version": "1.0.0",
+  "description": "High-performance Node.js LaTeX to PDF compilation server powered by Tectonic engine",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "build": "bash render-build.sh",
+    "dev": "node --watch src/server.js",
+    "test": "node tests/test-server.js"
+  },
+  "keywords": [
+    "latex",
+    "pdf",
+    "tectonic",
+    "compiler",
+    "rest-api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^11.1.0"
+  }
+}

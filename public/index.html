@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LaTeX to PDF Compiler Server</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --success-hover: #059669;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      background: #1e3a8a;
+      color: #93c5fd;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem 2rem;
+      height: calc(100vh - 75px);
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+
+    .panel {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+
+    .panel-header {
+      padding: 0.75rem 1.25rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    select, button, input[type="file"] {
+      font-family: inherit;
+    }
+
+    select {
+      background: #0f172a;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+    .btn-success:hover {
+      background: var(--success-hover);
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    textarea#latex-input {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      background: #090d16;
+      color: #e2e8f0;
+      border: none;
+      outline: none;
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      resize: none;
+    }
+
+    .preview-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #090d16;
+      position: relative;
+    }
+
+    iframe#pdf-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #525659;
+    }
+
+    .placeholder-view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 2rem;
+      background: #090d16;
+    }
+
+    .placeholder-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .status-bar {
+      padding: 0.5rem 1.25rem;
+      background: rgba(15, 23, 42, 0.7);
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 650px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    pre code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #38bdf8;
+      background: #090d16;
+      padding: 1rem;
+      border-radius: 8px;
+      display: block;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">T</div>
+      <div>
+        <div class="title">LaTeX &bull; PDF Compiler</div>
+      </div>
+      <span class="badge">Powered by Tectonic</span>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <button class="btn btn-secondary" onclick="openApiDocs()">API Documentation</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left: LaTeX Editor -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>LaTeX Source Code</span>
+        </div>
+        <div class="panel-actions">
+          <select id="template-select" onchange="loadTemplate(this.value)">
+            <option value="math">Sample: Math & Formula</option>
+            <option value="article">Sample: Academic Paper</option>
+            <option value="resume">Sample: Modern Resume</option>
+          </select>
+          <input type="file" id="file-uploader" accept=".tex,.txt" style="display: none;" onchange="handleFileUpload(event)">
+          <button class="btn btn-secondary" onclick="document.getElementById('file-uploader').click()">Upload .tex</button>
+        </div>
+      </div>
+
+      <div class="editor-container">
+        <textarea id="latex-input" spellcheck="false" placeholder="Enter your LaTeX code here..."></textarea>
+      </div>
+
+      <div class="status-bar">
+        <span id="char-count">0 characters</span>
+        <div style="display: flex; gap: 0.5rem;">
+          <button id="btn-compile" class="btn btn-primary" onclick="compileToPdf()">
+            <span id="compile-icon">&#9658;</span> Compile to PDF
+          </button>
+          <button id="btn-bundle" class="btn btn-success" onclick="downloadBundle()">
+            <span>&#128230;</span> Download (PDF + TeX)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: PDF Preview -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>PDF Preview</span>
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-secondary" id="btn-open-tab" onclick="openPdfNewTab()" disabled>Open in Tab</button>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <div class="placeholder-view" id="preview-placeholder">
+          <div class="placeholder-icon">&#128196;</div>
+          <h3>Ready to Compile</h3>
+          <p>Click "Compile to PDF" to generate and preview your rendered PDF here.</p>
+        </div>
+        <iframe id="pdf-frame" style="display: none;"></iframe>
+      </div>
+
+      <div class="status-bar">
+        <span id="compilation-info">Status: Idle</span>
+        <span id="timing-info">Ready</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- API Docs Modal -->
+  <div class="modal-overlay" id="api-modal" onclick="closeApiDocs(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>REST API Usage</h2>
+        <button class="modal-close" onclick="closeApiDocs()">&times;</button>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">You can easily send LaTeX files or code to this server via HTTP:</p>
+      
+      <h3>1. Get PDF Directly (POST /api/compile/pdf)</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Send raw JSON LaTeX content:</p>
+      <pre><code>curl -X POST http://localhost:3000/api/compile/pdf \
+  -H "Content-Type: application/json" \
+  -d '{"latex": "\\documentclass{article}\\begin{document}Hello World!\\end{document}"}' \
+  --output result.pdf</code></pre>
+      
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Or upload a <code>.tex</code> file via multipart/form-data:</p>
+      <pre><code>curl -X POST http://localhost:3000/api/compile/pdf \
+  -F "file=@document.tex" \
+  --output result.pdf</code></pre>
+
+      <h3 style="margin-top: 1.5rem;">2. Get Both PDF & TeX Bundle (POST /api/compile/bundle)</h3>
+      <pre><code>curl -X POST http://localhost:3000/api/compile/bundle \
+  -F "file=@document.tex" \
+  --output document-bundle.zip</code></pre>
+
+      <h3 style="margin-top: 1.5rem;">3. Universal Endpoint (POST /api/compile)</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Use <code>?format=pdf</code>, <code>?format=zip</code>, or <code>?format=json</code></p>
+      <pre><code>curl -X POST "http://localhost:3000/api/compile?format=json" \
+  -H "Content-Type: application/json" \
+  -d '{"latex": "\\documentclass{article}\\begin{document}Test\\end{document}"}'</code></pre>
+    </div>
+  </div>
+
+  <script>
+    const templates = {
+      math: `\\documentclass[11pt,a4paper]{article}
+\\usepackage{amsmath, amssymb, amsthm}
+\\usepackage{geometry}
+\\geometry{margin=1in}
+
+\\title{\\textbf{Advanced Mathematical Formulations}}
+\\author{Node.js \\& Tectonic Compiler Service}
+\\date{\\today}
+
+\\begin{document}
+\\maketitle
+
+\\section{Euler's Identity and Complex Analysis}
+Euler's identity connects five of the most fundamental constants in mathematics:
+\\begin{equation}
+e^{i\\pi} + 1 = 0
+\\end{equation}
+
+\\section{Calculus and Integration}
+The Gaussian integral is defined as:
+\\begin{equation}
+\\int_{-\\infty}^{\\infty} e^{-x^2} \\, dx = \\sqrt{\\pi}
+\\end{equation}
+
+\\section{Matrix and Linear Algebra}
+Consider the eigenvalue decomposition:
+\\begin{equation}
+\\mathbf{A} \\mathbf{v} = \\lambda \\mathbf{v}
+\\end{equation}
+where $\\mathbf{A}$ is an $n \\times n$ matrix:
+\\begin{equation}
+\\mathbf{A} = \\begin{pmatrix}
+a_{11} & a_{12} & \\dots & a_{1n} \\\\
+a_{21} & a_{22} & \\dots & a_{2n} \\\\
+\\vdots & \\vdots & \\ddots & \\vdots \\\\
+a_{n1} & a_{n2} & \\dots & a_{nn}
+\\end{pmatrix}
+\\end{equation}
+
+\\end{document}`,
+
+      article: `\\documentclass[12pt]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage{hyperref}
+
+\\title{High Performance LaTeX Compilation with Node.js}
+\\author{Antigravity Engineering}
+\\date{\\today}
+
+\\begin{document}
+\\maketitle
+
+\\begin{abstract}
+This paper demonstrates rapid compilation of LaTeX source documents into publication-ready PDF documents using a containerized or standalone Tectonic typesetting engine driven by a lightweight Node.js HTTP server.
+\\end{abstract}
+
+\\section{Introduction}
+LaTeX remains the gold standard for scientific, technical, and academic documents. However, deploying full TeX Live distributions (often exceeding 5GB) is cumbersome in modern microservice architectures.
+
+\\section{Architecture}
+The server offers streamlined REST endpoints:
+\\begin{itemize}
+    \\item \\textbf{POST /api/compile/pdf}: Streams back rendered binary PDF.
+    \\item \\textbf{POST /api/compile/bundle}: Generates an archive containing both PDF and source \\texttt{.tex}.
+\\end{itemize}
+
+\\section{Conclusion}
+The microservice guarantees complete formatting integrity while providing rapid responses.
+
+\\end{document}`,
+
+      resume: `\\documentclass[10pt,a4paper]{article}
+\\usepackage[margin=0.75in]{geometry}
+\\usepackage{titlesec}
+\\usepackage{enumitem}
+
+\\titleformat{\\section}{\\large\\bfseries}{}{0em}{}[\\titlerule]
+\\titlespacing*{\\section}{0pt}{10pt}{5pt}
+
+\\begin{document}
+\\begin{center}
+    {\\LARGE \\textbf{ALEXANDER MERCER}}\\\\
+    \\vspace{2pt}
+    San Francisco, CA $\\cdot$ alex.mercer@example.com $\\cdot$ +1 (555) 019-2834
+\\end{center}
+
+\\section{SUMMARY}
+Senior Full-Stack Software Engineer with 7+ years of experience designing scalable microservices, cloud architectures, and developer tooling.
+
+\\section{TECHNICAL SKILLS}
+\\textbf{Languages:} JavaScript, TypeScript, Go, Python, Rust, C++\\\\
+\\textbf{Frameworks \\& Tools:} Node.js, Express, Docker, Kubernetes, PostgreSQL, Redis, LaTeX
+
+\\section{EXPERIENCE}
+\\textbf{Senior Systems Architect} $\\cdot$ Apex Technologies \\hfill 2022 -- Present\\\\
+\\begin{itemize}[noitemsep,topsep=2pt]
+    \\item Designed low-latency document processing engine serving over 1M requests/day.
+    \\item Reduced PDF rendering times by 65\\% through intelligent resource caching.
+\\end{itemize}
+
+\\textbf{Software Engineer} $\\cdot$ CloudScale Inc \\hfill 2019 -- 2022\\\\
+\\begin{itemize}[noitemsep,topsep=2pt]
+    \\item Built real-time collaboration microservices using WebSockets and Node.js.
+\\end{itemize}
+
+\\end{document}`
+    };
+
+    const textarea = document.getElementById('latex-input');
+    const charCount = document.getElementById('char-count');
+    const pdfFrame = document.getElementById('pdf-frame');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+    const compilationInfo = document.getElementById('compilation-info');
+    const timingInfo = document.getElementById('timing-info');
+    const btnCompile = document.getElementById('btn-compile');
+    const btnBundle = document.getElementById('btn-bundle');
+    const btnOpenTab = document.getElementById('btn-open-tab');
+    let currentPdfBlobUrl = null;
+
+    textarea.addEventListener('input', () => {
+      charCount.textContent = `${textarea.value.length.toLocaleString()} characters`;
+    });
+
+    function loadTemplate(key) {
+      if (templates[key]) {
+        textarea.value = templates[key];
+        charCount.textContent = `${textarea.value.length.toLocaleString()} characters`;
+      }
+    }
+
+    // Initialize with default template
+    loadTemplate('math');
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        textarea.value = e.target.result;
+        charCount.textContent = `${textarea.value.length.toLocaleString()} characters`;
+      };
+      reader.readAsText(file);
+    }
+
+    async function compileToPdf() {
+      const latex = textarea.value.trim();
+      if (!latex) {
+        alert('Please enter or upload LaTeX source code.');
+        return;
+      }
+
+      setLoading(true, 'Compiling LaTeX into PDF...');
+      const start = performance.now();
+
+      try {
+        const response = await fetch('/api/compile/pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latex })
+        });
+
+        const duration = Math.round(performance.now() - start);
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({ error: 'Compilation failed' }));
+          showError(errData.error || 'Compilation error', errData.logs);
+          setLoading(false, 'Compilation failed');
+          return;
+        }
+
+        const blob = await response.blob();
+        if (currentPdfBlobUrl) {
+          URL.revokeObjectURL(currentPdfBlobUrl);
+        }
+        currentPdfBlobUrl = URL.createObjectURL(blob);
+
+        pdfFrame.src = currentPdfBlobUrl;
+        pdfFrame.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
+        btnOpenTab.disabled = false;
+
+        compilationInfo.textContent = 'Status: Successfully Compiled';
+        timingInfo.textContent = `Completed in ${duration}ms`;
+      } catch (err) {
+        showError(err.message);
+        setLoading(false, 'Network or server error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function downloadBundle() {
+      const latex = textarea.value.trim();
+      if (!latex) {
+        alert('Please enter or upload LaTeX source code.');
+        return;
+      }
+
+      setLoading(true, 'Generating PDF + LaTeX bundle archive...');
+      try {
+        const response = await fetch('/api/compile/bundle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latex })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({ error: 'Bundle generation failed' }));
+          showError(errData.error || 'Bundle failed', errData.logs);
+          setLoading(false, 'Bundle generation failed');
+          return;
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document-bundle.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        compilationInfo.textContent = 'Status: Downloaded ZIP Bundle (PDF + TeX)';
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function openPdfNewTab() {
+      if (currentPdfBlobUrl) {
+        window.open(currentPdfBlobUrl, '_blank');
+      }
+    }
+
+    function setLoading(isLoading, statusText) {
+      btnCompile.disabled = isLoading;
+      btnBundle.disabled = isLoading;
+      if (isLoading) {
+        compilationInfo.innerHTML = `<span class="spinner"></span> ${statusText || 'Processing...'}`;
+      }
+    }
+
+    function showError(message, logs) {
+      previewPlaceholder.style.display = 'flex';
+      pdfFrame.style.display = 'none';
+      previewPlaceholder.innerHTML = `
+        <div class="placeholder-icon" style="color: #ef4444;">&#9888;</div>
+        <h3 style="color: #ef4444; margin-bottom: 0.5rem;">Compilation Error</h3>
+        <p style="max-width: 500px; font-size: 0.85rem; color: #fca5a5; margin-bottom: 1rem; word-break: break-word;">${escapeHtml(message)}</p>
+        ${logs ? `<pre style="max-height: 200px; text-align: left; overflow: auto; background: #1e1e2e; padding: 0.75rem; border-radius: 6px; font-size: 0.75rem; color: #fca5a5; max-width: 100%;"><code>${escapeHtml(logs)}</code></pre>` : ''}
+      `;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text;
+      return div.innerHTML;
+    }
+
+    function openApiDocs() {
+      document.getElementById('api-modal').style.display = 'flex';
+    }
+
+    function closeApiDocs() {
+      document.getElementById('api-modal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

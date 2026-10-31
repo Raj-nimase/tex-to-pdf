@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: latex-pdf-compiler
+    runtime: node
+    plan: free
+    buildCommand: bash render-build.sh
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
