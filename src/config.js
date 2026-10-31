@@ -26,6 +26,6 @@ export const config = {
   host: process.env.HOST || '0.0.0.0',
   tectonicPath: resolveTectonicPath(),
   tempDir: path.resolve(process.env.TEMP_DIR || path.join(projectRoot, 'temp')),
-  compilationTimeoutMs: parseInt(process.env.COMPILATION_TIMEOUT_MS || '30000', 10),
+  compilationTimeoutMs: parseInt(process.env.COMPILATION_TIMEOUT_MS || '120000', 10), // 120s default to allow package downloads
   maxUploadSizeBytes: parseInt(process.env.MAX_UPLOAD_SIZE_BYTES || '10485760', 10) // 10MB default
 };

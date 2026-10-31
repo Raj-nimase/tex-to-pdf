@@ -24,10 +24,24 @@ chmod +x bin/tectonic
 echo "✅ Tectonic installed successfully:"
 ./bin/tectonic --version
 
-# 4. Optional: Pre-warm LaTeX cache with a minimal test compilation
-echo "⚡ Warming up Tectonic format cache..."
-echo '\documentclass{article}\begin{document}init\end{document}' > warmup.tex
-./bin/tectonic warmup.tex -o . > /dev/null 2>&1 || true
+# 4. Pre-warm LaTeX cache with popular packages (amsmath, geometry, hyperref, titlesec, enumitem, etc.)
+echo "⚡ Pre-warming Tectonic format and package cache..."
+cat << 'EOF' > warmup.tex
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{booktabs}
+\begin{document}
+Warmup compilation
+\end{document}
+EOF
+./bin/tectonic warmup.tex -o . || true
 rm -f warmup.*
 
 echo "============================================="

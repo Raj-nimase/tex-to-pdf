@@ -37,7 +37,8 @@ export async function compileLatexToPdf(latexSource, options = {}) {
     const args = [
       inputTexPath,
       '--outdir', jobDir,
-      '--chatter', 'minimal'
+      '--chatter', 'minimal',
+      '--untrusted'
     ];
 
     const { stdout, stderr, exitCode } = await new Promise((resolve, reject) => {
@@ -47,13 +48,15 @@ export async function compileLatexToPdf(latexSource, options = {}) {
 
       const proc = spawn(config.tectonicPath, args, {
         cwd: jobDir,
-        windowsHide: true
+        windowsHide: true,
+        stdio: ['ignore', 'pipe', 'pipe'] // Ensure stdin never blocks on interactive prompts
       });
 
+      const timeoutSec = Math.round(config.compilationTimeoutMs / 1000);
       const timeout = setTimeout(() => {
         timedOut = true;
         proc.kill('SIGKILL');
-        reject(new Error(`Compilation timed out after ${config.compilationTimeoutMs / 1000} seconds`));
+        reject(new Error(`Compilation timed out after ${timeoutSec} seconds. If your document uses new packages, they may have taken too long to download from the CTAN network. Try recompiling or increase COMPILATION_TIMEOUT_MS.`));
       }, config.compilationTimeoutMs);
 
       proc.stdout.on('data', (data) => {

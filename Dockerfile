@@ -25,8 +25,8 @@ RUN npm ci --omit=dev
 # Copy application source code
 COPY . .
 
-# Pre-warm common LaTeX fonts and formats into cache
-RUN echo '\documentclass{article}\begin{document}init\end{document}' > /tmp/warmup.tex \
+# Pre-warm common LaTeX fonts, formats, and packages into cache
+RUN printf '\\documentclass[11pt,a4paper]{article}\n\\usepackage{amsmath,amssymb,amsthm,geometry,hyperref,titlesec,enumitem,graphicx,xcolor,array,booktabs}\n\\begin{document}init\\end{document}' > /tmp/warmup.tex \
     && tectonic /tmp/warmup.tex -o /tmp \
     && rm -f /tmp/warmup.*
 
