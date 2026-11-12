@@ -34,12 +34,18 @@ export async function compileLatexToPdf(latexSource, options = {}) {
 
     // Execute Tectonic compiler
     // Tectonic compiles document.tex and outputs document.pdf directly into jobDir
+    const isOffline = options.offline === true || (options.offline !== false && config.offlineMode);
+
     const args = [
       inputTexPath,
       '--outdir', jobDir,
       '--chatter', 'minimal',
       '--untrusted'
     ];
+
+    if (isOffline) {
+      args.push('--only-cached');
+    }
 
     const { stdout, stderr, exitCode } = await new Promise((resolve, reject) => {
       let stdoutData = '';

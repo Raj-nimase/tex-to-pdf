@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
+    "setup:offline": "node scripts/setup-offline.js",
     "build": "bash render-build.sh",
     "dev": "node --watch src/server.js",
     "test": "node tests/test-server.js"

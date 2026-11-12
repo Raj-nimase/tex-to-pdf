@@ -28,6 +28,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     engine: 'tectonic',
     tectonicPath: config.tectonicPath,
+    offlineMode: config.offlineMode,
     timestamp: new Date().toISOString()
   });
 });

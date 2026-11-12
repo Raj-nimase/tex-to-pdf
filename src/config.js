@@ -27,5 +27,6 @@ export const config = {
   tectonicPath: resolveTectonicPath(),
   tempDir: path.resolve(process.env.TEMP_DIR || path.join(projectRoot, 'temp')),
   compilationTimeoutMs: parseInt(process.env.COMPILATION_TIMEOUT_MS || '120000', 10), // 120s default to allow package downloads
-  maxUploadSizeBytes: parseInt(process.env.MAX_UPLOAD_SIZE_BYTES || '10485760', 10) // 10MB default
+  maxUploadSizeBytes: parseInt(process.env.MAX_UPLOAD_SIZE_BYTES || '10485760', 10), // 10MB default
+  offlineMode: process.env.OFFLINE_MODE === 'true' // When true, passes --only-cached to prevent network access
 };

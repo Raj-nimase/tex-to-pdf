@@ -23,7 +23,21 @@ A fast, lightweight, and modern Node.js server powered by the **Tectonic** types
 
 ## 🚀 Quick Start
 
-### 1. Start the Server
+### 1. Offline Setup (One-time command)
+
+To run the server **100% offline** on your local system, run:
+
+```bash
+npm run setup:offline
+```
+*(On Windows, you can also simply double-click `setup-offline.bat`).*
+
+This script:
+1. Downloads the Tectonic engine executable into `./bin` (if not already present).
+2. Pre-caches all standard packages, fonts, and math/graphics libraries (`amsmath`, `geometry`, `hyperref`, `tikz`, `algorithms`, etc.) into your local machine's cache.
+3. Tests compilation in strict offline mode (`--only-cached`) to verify it works without any internet connection.
+
+### 2. Start the Server
 
 ```bash
 npm start
@@ -37,7 +51,7 @@ npm run dev
 
 The server will be available at **`http://localhost:3000`**.
 
-### 2. Run Automated Tests
+### 3. Run Automated Tests
 
 ```bash
 npm test

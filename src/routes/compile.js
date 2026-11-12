@@ -77,7 +77,8 @@ router.post('/pdf', upload.single('file'), async (req, res, next) => {
       });
     }
 
-    const result = await compileLatexToPdf(latexSource);
+    const isOffline = req.query.offline === 'true' || (req.body && (req.body.offline === true || req.body.offline === 'true'));
+    const result = await compileLatexToPdf(latexSource, { offline: isOffline });
     const baseName = getBaseName(req);
     const filename = `${baseName}.pdf`;
 
@@ -104,7 +105,8 @@ async function handleBundleRequest(req, res, next) {
       });
     }
 
-    const result = await compileLatexToPdf(latexSource);
+    const isOffline = req.query.offline === 'true' || (req.body && (req.body.offline === true || req.body.offline === 'true'));
+    const result = await compileLatexToPdf(latexSource, { offline: isOffline });
     const baseName = getBaseName(req);
 
     res.setHeader('Content-Type', 'application/zip');
@@ -159,7 +161,8 @@ router.post('/', upload.single('file'), async (req, res, next) => {
       });
     }
 
-    const result = await compileLatexToPdf(latexSource);
+    const isOffline = req.query.offline === 'true' || (req.body && (req.body.offline === true || req.body.offline === 'true'));
+    const result = await compileLatexToPdf(latexSource, { offline: isOffline });
     const baseName = getBaseName(req);
 
     if (format === 'json') {
