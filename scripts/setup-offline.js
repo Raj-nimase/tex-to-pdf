@@ -150,6 +150,7 @@ async function prewarmOfflineCache() {
 \\maketitle
 \\section{Offline Mathematics}
 Euler's equation: $e^{i\\pi} + 1 = 0$
+Formula: $E = mc^2 + \\sum_{i=1}^{n} x_i^2 + \\int_0^\\infty e^{-x} dx$
 \\section{Algorithm \\& Graphics}
 \\begin{algorithm}
 \\caption{Test}
